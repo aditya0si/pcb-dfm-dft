@@ -1,0 +1,10 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ls -lh hardware/schematic.pdf hardware/pcb_3d.png hardware/gerber_preview.png docs/DFM_Report.txt
+      - run: cat docs/DFM_Report.txt
+

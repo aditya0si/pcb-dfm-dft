@@ -1,5 +1,7 @@
 # pcb-dfm-dft — Four-Layer Network Board
 
+[![CI](https://github.com/aditya0si/pcb-dfm-dft/actions/workflows/ci.yml/badge.svg)](https://github.com/aditya0si/pcb-dfm-dft/actions)
+
 <p align="center">
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-0ea5e9?style=flat-square)](https://aditya0si.github.io/pcb-dfm-dft/)
