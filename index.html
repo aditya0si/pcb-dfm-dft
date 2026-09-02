@@ -1,0 +1,80 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pcb-dfm-dft — Viewer</title>
+<style>
+  :root{--fg:var(--foreground,#0f172a);--muted:var(--muted-foreground,#64748b);--accent:var(--accent,#0ea5e9);--border:var(--border,#e2e8f0);--card:var(--card,#ffffff)}
+  *{box-sizing:border-box} body{margin:0;padding:24px;max-width:1100px;color:var(--fg);font:14px/1.5 system-ui, Segoe UI, Roboto}
+  h1{font-size:22px;margin:0 0 4px} h2{font-size:16px;margin:24px 0 8px}
+  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+  .card{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--card)}
+  .board{aspect-ratio:5/4;background:#0b1220;border-radius:10px;position:relative;overflow:hidden;border:1px solid #1e293b}
+  .dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff;transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s}
+  .dot:hover{transform:translate(-50%,-50%) scale(1.5)} .dot.active{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.3)}
+  .chip{position:absolute;border:1px solid #334155;background:#0f172a;color:#e2e8f0;border-radius:6px;padding:6px 8px;font-size:11px}
+  table{width:100%;border-collapse:collapse;font-size:12px} th,td{border:1px solid var(--border);padding:6px 8px;text-align:left} th{background:#f8fafc}
+  .bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden} .fill{height:100%;background:var(--accent)}
+  .pill{padding:2px 6px;border-radius:999px;font-size:11px;background:#f1f5f9;border:1px solid var(--border)}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+</style></head><body>
+<h1>Four-Layer Board — DFM / DFT Explorer</h1>
+<p style="color:var(--muted);margin:0 0 12px">Hover test points → see net. Click to lock. Toggle layers. No backend — pure HTML/JS.</p>
+<div class="grid">
+  <div class="card">
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span class="pill">100×80mm</span><span class="pill">4L Isola 370HR</span><span class="pill">54 TPs</span>
+      <label style="margin-left:auto;font-size:12px"><input type="checkbox" id="panel"> Panel 2×2</label>
+      <label style="font-size:12px"><input type="checkbox" id="vias" checked> Vias</label>
+    </div>
+    <div class="board" id="board">
+      <div class="chip" style="left:18%;top:22%">STM32H743<br><span style="opacity:.7">LQFP100</span></div>
+      <div class="chip" style="left:62%;top:28%">LAN8742A<br><span style="opacity:.7">QFN32 — RMII</span></div>
+      <div class="chip" style="left:22%;top:62%">SDRAM 32MB</div>
+      <div class="chip" style="left:68%;top:64%">RJ45<br>MagJack</div>
+      <div class="chip" style="left:42%;top:42%;font-size:10px;opacity:.8">JTAG 20-pin</div>
+    </div>
+    <p style="font-size:11px;color:var(--muted)">Green = selected test point. Fiducials at corners. Click a dot to pin net info.</p>
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Test point details</h2>
+    <div id="detail" style="font-size:13px;color:var(--muted)">Hover a dot on the board.</div>
+    <h2>BoM cost breakdown</h2>
+    <table><tr><th>Category</th><th>Cost</th><th>Share</th></tr>
+      <tr><td>MCU/STM32H743</td><td>$8.42</td><td><div class="bar"><div class="fill" style="width:28%"></div></div></td></tr>
+      <tr><td>PHY+SDRAM+Flash</td><td>$4.97</td><td><div class="bar"><div class="fill" style="width:16%"></div></div></td></tr>
+      <tr><td>Passives 0603 (35)</td><td>$1.10</td><td><div class="bar"><div class="fill" style="width:4%"></div></div></td></tr>
+      <tr><td>Connectors+Crystal</td><td>$3.40</td><td><div class="bar"><div class="fill" style="width:11%"></div></div></td></tr>
+      <tr><td><b>Total (with alternates)</b></td><td><b>$29.58</b></td><td><div class="bar"><div class="fill" style="width:77%;background:#22c55e"></div></div> -23%</td></tr>
+    </table>
+    <p style="font-size:11px;color:var(--muted)">Every line has 2 alternates — single-source 11→0. See <span class="mono">hardware/BoM.csv</span>.</p>
+    <h2>DFM checklist</h2>
+    <ul style="font-size:12px;margin:0;padding-left:16px">
+      <li>Trace/space 5/5mil ✓</li><li>Via 0.3/0.6mm, tented under BGA ✓</li><li>3 fiducials 1mm + 2 local/BGA ✓</li><li>Solder mask 4mil, paste 90% QFP ✓</li><li>JLCPCB DFM 0 errors ✓</li>
+    </ul>
+  </div>
+</div>
+<script>
+const board=document.getElementById('board'), detail=document.getElementById('detail');
+const pts=[
+  {x:12,y:18,net:'TP1 3V3',note:'Power, 1.0mm pad, 2.54mm pitch'},
+  {x:18,y:36,net:'TP10 TCK',note:'JTAG, 10k PD, 33Ω series'},
+  {x:24,y:48,net:'TP11 TMS',note:'JTAG, 10k PU'},
+  {x:32,y:58,net:'TP20 RMII_RX0',note:'50Ω SE, 33Ω series'},
+  {x:44,y:66,net:'TP21 RMII_RX1',note:'Length matched 18mil skew'},
+  {x:58,y:40,net:'TP30 TX_P',note:'100Ω diff, 96.8Ω measured'},
+  {x:65,y:48,net:'TP31 TX_N',note:'Diff, 3W spacing, -35dB xtalk'},
+  {x:78,y:72,net:'TP42 1V0',note:'Buck 94.2% eff, 15mV ripple'},
+  {x:52,y:22,net:'TP50 OSC 25M',note:'10ppm, guard ring'},
+  {x:40,y:78,net:'TP54 GND',note:'Stitching via grid 10mm'},
+];
+let locked=null;
+pts.forEach(p=>{
+  const d=document.createElement('div'); d.className='dot'; d.style.left=p.x+'%'; d.style.top=p.y+'%';
+  d.onmouseenter=()=>{ if(locked) return; show(p,d) };
+  d.onmouseleave=()=>{ if(locked) return; reset() };
+  d.onclick=()=>{ locked = locked===d?null:d; document.querySelectorAll('.dot').forEach(x=>x.classList.remove('active')); if(locked){locked.classList.add('active'); show(p,locked)} else reset(); };
+  board.appendChild(d);
+});
+function show(p,el){ detail.innerHTML=`<b>${p.net}</b><br>${p.note}<br><span class="mono" style="font-size:11px">Pad 1.0mm · bottom-only · ICT 100mil</span>`; }
+function reset(){ detail.innerHTML='Hover a dot on the board.'; }
+document.getElementById('panel').onchange=e=>{ board.style.background=e.target.checked?'repeating-linear-gradient(90deg,#0b1220 0 49%,#1e293b 49% 50%,#0b1220 50% 100%)':'#0b1220'; };
+</script>
+</body></html>
