@@ -1,0 +1,16 @@
+JLCPCB DFM Report — pcb_4layer_gerbers.zip
+Date: 2026-09-02 | Tool: JLCPCB DFM v2.4 | IPC Class 2
+
+Result: 0 ERRORS, 3 warnings (resolved)
+- Warning: Silkscreen over pad at U2 pin 12 -> moved 0.2mm (RESOLVED)
+- Warning: Via too close to pad at TP30 (0.18mm) -> moved to 0.25mm (RESOLVED)
+- Warning: Copper to edge 0.28mm at mouse bite -> extended to 0.35mm (RESOLVED)
+
+Checks:
+Trace/Space: 5/5mil min PASS (design 6/6)
+Annular ring: 6mil min PASS
+Drill: 0.3mm min PASS
+Solder mask: 4mil expansion PASS
+Panel: 2x2 V-cut OK, 5mm rails, 3 fiducials OK
+
+Recommendation: FAB APPROVED
